@@ -94,7 +94,10 @@ if analyze_button:
                     for details in assets.values()
                 ])
                 
-                # Size by extension chart
+                # Add size in MB column
+                df['size_mb'] = df['size'] / (1024 * 1024)
+                
+                # Size by extension pie chart
                 fig1 = px.pie(
                     df.groupby('extension')['size'].sum().reset_index(),
                     values='size',
@@ -103,9 +106,20 @@ if analyze_button:
                 )
                 st.plotly_chart(fig1)
                 
+                # Size distribution histogram
+                fig2 = px.histogram(
+                    df,
+                    x='size_mb',
+                    nbins=30,
+                    title='Distribution of Asset Sizes',
+                    labels={'size_mb': 'Size (MB)', 'count': 'Number of Files'},
+                    color='extension'
+                )
+                fig2.update_layout(bargap=0.1)
+                st.plotly_chart(fig2)
+                
                 # File list
                 st.subheader("Asset Details")
-                df['size_mb'] = df['size'] / (1024 * 1024)
                 st.dataframe(
                     df[['path', 'extension', 'size_mb']]
                     .sort_values('size_mb', ascending=False)
@@ -118,6 +132,8 @@ if analyze_button:
                 st.markdown(f"""
                 - Total assets: {len(df)}
                 - Total size: {total_size_mb:.2f} MB
+                - Average size: {df['size_mb'].mean():.2f} MB
+                - Median size: {df['size_mb'].median():.2f} MB
                 """)
                 
         except Exception as e:
